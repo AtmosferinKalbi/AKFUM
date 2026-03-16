@@ -3,175 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AKFUM | AtmosferinKalbi Fırtına Uyarı Merkezi</title>
+    <title>AKFUM | Fırtına Uyarı Merkezi</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     
     <style>
-        :root {
-            --dark-bg: #0b0e14;
-            --accent-cyan: #00d2ff;
-            --glass: rgba(0, 210, 255, 0.07);
-            --border: rgba(0, 210, 255, 0.2);
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: 'Inter', -apple-system, sans-serif;
-            background-color: var(--dark-bg);
-            color: #e0e0e0;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
+        /* Sayfa yapısı */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background-color: #0b0e14;
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
             overflow: hidden;
         }
 
+        /* Üst Menü */
         header {
-            height: 60px;
-            background: linear-gradient(90deg, #001524 0%, #003a4d 100%);
+            height: 50px;
+            background: #001524;
             display: flex;
-            justify-content: space-between;
             align-items: center;
             padding: 0 20px;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 2px solid #00d2ff;
+            font-weight: bold;
+            letter-spacing: 2px;
+            color: #00d2ff;
+        }
+
+        /* Ana Gövde */
+        #container {
+            display: flex;
+            height: calc(100% - 50px);
+            width: 100%;
+        }
+
+        /* Yan Panel */
+        #sidebar {
+            width: 300px;
+            background: rgba(0, 210, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(0, 210, 255, 0.3);
+            padding: 20px;
+            box-sizing: border-box;
             z-index: 1000;
         }
 
-        .logo {
-            font-weight: 800;
-            color: var(--accent-cyan);
-            letter-spacing: 1px;
-            font-size: 1.2rem;
-        }
-
-        main {
-            display: flex;
-            flex: 1;
-            height: calc(100vh - 60px);
-        }
-
-        /* Yan Panel - Şeffaf Turkuaz */
-        #sidebar {
-            width: 350px;
-            background: var(--glass);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border-right: 1px solid var(--border);
-            padding: 20px;
-            overflow-y: auto;
-            z-index: 999;
-        }
-
-        .panel-card {
-            background: rgba(0, 0, 0, 0.5);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-
-        h2, h3 { color: var(--accent-cyan); margin-bottom: 10px; }
-
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .data-table td {
-            padding: 10px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            font-size: 0.9rem;
-        }
-
-        /* Harita Alanı - Burası kritik: Yükseklik mutlaka verilmeli */
+        /* Harita - Beyaz ekranı önlemek için height 100% şart */
         #map {
             flex: 1;
             height: 100%;
-            background-color: #0b0e14; /* Harita gelene kadar siyah kalsın */
+            background: #000;
         }
 
-        .status-badge {
-            background: rgba(0, 255, 0, 0.1);
-            color: #00ff00;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            border: 1px solid #00ff0033;
+        .card {
+            background: rgba(0,0,0,0.6);
+            border: 1px solid #00d2ff55;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
         }
 
-        @media (max-width: 768px) {
-            main { flex-direction: column; }
-            #sidebar { width: 100%; height: 300px; order: 2; }
-            #map { order: 1; }
-        }
+        h2 { color: #00d2ff; font-size: 1.2rem; margin-top: 0; }
+        .data { color: #ffcc00; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<header>
-    <div class="logo">AKFUM V1.0</div>
-    <div class="status-badge">Sistem Çevrimiçi</div>
-</header>
+<header>AKFUM V1.0 | AtmosferinKalbi</header>
 
-<main>
-    <section id="sidebar">
-        <h2>Oraj Analizi</h2>
-        <div class="panel-card">
-            <h3>Konvektif Parametreler</h3>
-            <table class="data-table">
-                <tr><td>CAPE</td><td style="color:#ffcc00">1450 J/kg</td></tr>
-                <tr><td>Lifted Index</td><td style="color:#ff4d4d">-4</td></tr>
-                <tr><td>Nem Oranı (850hPa)</td><td>%75</td></tr>
-                <tr><td>Oraj Riski</td><td style="font-weight:bold; color:orange">ORTA</td></tr>
-            </table>
+<div id="container">
+    <div id="sidebar">
+        <h2>Oraj Verileri</h2>
+        <div class="card">
+            <p>Durum: <span style="color: #00ff00;">Sistem Aktif</span></p>
+            <p>CAPE: <span class="data">1650 J/kg</span></p>
+            <p>LI: <span class="data">-5</span></p>
         </div>
-
-        <div class="panel-card">
-            <h3>Bölgesel Durum</h3>
-            <p style="font-size: 0.85rem; line-height: 1.5;">
-                Batı Karadeniz açıklarında konvektif hücreler güçleniyor. AtmosferinKalbi radar verilerine göre akşam saatlerinde yıldırım aktivitesi artabilir.
-            </p>
+        <div class="card">
+            <p style="font-size: 0.9rem;">Harita üzerinde güncel oraj ve yıldırım risklerini takip edebilirsiniz.</p>
         </div>
-    </section>
-
+    </div>
+    
     <div id="map"></div>
-</main>
+</div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-    // Sayfa tamamen yüklendiğinde haritayı başlat
-    document.addEventListener("DOMContentLoaded", function() {
+    // Sayfa yüklendiğinde çalışacak fonksiyon
+    window.onload = function() {
         try {
-            // 1. Haritayı Oluştur (Türkiye Merkezli)
-            var map = L.map('map', {
-                center: [39.0, 35.0],
-                zoom: 6,
-                zoomControl: false // Sağ alt köşeye alacağız
-            });
+            // Haritayı oluştur (Türkiye merkezli)
+            var map = L.map('map').setView([39.0, 35.0], 6);
 
-            // 2. Koyu Tema Katmanı Ekle (CartoDB Dark Matter)
+            // Koyu Tema Harita Katmanı (CartoDB Dark)
             L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                attribution: '&copy; AtmosferinKalbi | AKFUM'
+                attribution: 'AKFUM'
             }).addTo(map);
 
-            // Zoom kontrolünü sağ alta al
-            L.control.zoom({ position: 'bottomright' }).addTo(map);
+            // Örnek bir risk noktası ekle (Ankara)
+            L.circle([39.9, 32.8], {
+                color: 'cyan',
+                fillColor: '#00d2ff',
+                fillOpacity: 0.5,
+                radius: 30000
+            }).addTo(map).bindPopup('Oraj Gelişimi Bekleniyor');
 
-            // 3. Örnek Bir Fırtına Bölgesi İşaretle
-            var stormCircle = L.circle([41.5, 32.5], {
-                color: 'red',
-                fillColor: '#f03',
-                fillOpacity: 0.4,
-                radius: 50000
-            }).addTo(map).bindPopup("<b>Şiddetli Oraj Riski</b><br>Batı Karadeniz Kıyıları.");
-
-            console.log("AKFUM Sistemi Başarıyla Yüklendi.");
+            console.log("Harita başarıyla yüklendi!");
         } catch (error) {
-            console.error("Harita yüklenirken bir hata oluştu:", error);
+            console.error("Hata oluştu:", error);
+            document.body.innerHTML += '<div style="position:absolute; top:60px; left:320px; color:red;">Harita yüklenemedi: ' + error + '</div>';
         }
-    });
+    };
 </script>
 
 </body>
