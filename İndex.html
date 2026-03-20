@@ -2,121 +2,91 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AKFUM | Fırtına Uyarı Merkezi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AKFUM | AtmosferinKalbi</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     
     <style>
-        /* Sayfa yapısı */
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            background-color: #0b0e14;
-            color: white;
-            font-family: 'Segoe UI', sans-serif;
-            overflow: hidden;
-        }
-
-        /* Üst Menü */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body, html { height: 100%; background: #0b0e14; color: white; font-family: sans-serif; overflow: hidden; }
+        
         header {
-            height: 50px;
-            background: #001524;
-            display: flex;
-            align-items: center;
-            padding: 0 20px;
-            border-bottom: 2px solid #00d2ff;
-            font-weight: bold;
-            letter-spacing: 2px;
-            color: #00d2ff;
+            height: 50px; background: #001524; display: flex; align-items: center;
+            padding: 0 15px; border-bottom: 2px solid #00d2ff; font-weight: bold; color: #00d2ff;
         }
 
-        /* Ana Gövde */
-        #container {
-            display: flex;
-            height: calc(100% - 50px);
-            width: 100%;
+        #main-container { display: flex; height: calc(100% - 50px); width: 100%; flex-direction: column; }
+
+        /* Harita alanı - Yüksekliği netleştirildi */
+        #map { flex: 2; width: 100%; background: #000; min-height: 300px; }
+
+        /* Alt Bilgi Paneli */
+        #info-panel {
+            flex: 1; background: rgba(0, 210, 255, 0.05); border-top: 1px solid #00d2ff55;
+            padding: 15px; overflow-y: auto; backdrop-filter: blur(10px);
         }
 
-        /* Yan Panel */
-        #sidebar {
-            width: 300px;
-            background: rgba(0, 210, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border-right: 1px solid rgba(0, 210, 255, 0.3);
-            padding: 20px;
-            box-sizing: border-box;
-            z-index: 1000;
-        }
-
-        /* Harita - Beyaz ekranı önlemek için height 100% şart */
-        #map {
-            flex: 1;
-            height: 100%;
-            background: #000;
-        }
-
-        .card {
-            background: rgba(0,0,0,0.6);
-            border: 1px solid #00d2ff55;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-        }
-
-        h2 { color: #00d2ff; font-size: 1.2rem; margin-top: 0; }
-        .data { color: #ffcc00; font-weight: bold; }
+        .card { background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; border: 1px solid #00d2ff33; }
+        #debug-log { color: #ff4d4d; font-size: 12px; margin-top: 10px; font-family: monospace; }
+        .data-text { color: #00ffcc; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<header>AKFUM V1.0 | AtmosferinKalbi</header>
+<header>AKFUM V1.0</header>
 
-<div id="container">
-    <div id="sidebar">
-        <h2>Oraj Verileri</h2>
-        <div class="card">
-            <p>Durum: <span style="color: #00ff00;">Sistem Aktif</span></p>
-            <p>CAPE: <span class="data">1650 J/kg</span></p>
-            <p>LI: <span class="data">-5</span></p>
-        </div>
-        <div class="card">
-            <p style="font-size: 0.9rem;">Harita üzerinde güncel oraj ve yıldırım risklerini takip edebilirsiniz.</p>
-        </div>
-    </div>
-    
+<div id="main-container">
     <div id="map"></div>
+    
+    <div id="info-panel">
+        <div class="card">
+            <h3>Canlı Oraj Takibi</h3>
+            <p>Durum: <span class="data-text">Sistem Hazır</span></p>
+            <p>Tahmini CAPE: <span class="data-text">1800 J/kg</span></p>
+        </div>
+        <div id="debug-log"></div>
+    </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-    // Sayfa yüklendiğinde çalışacak fonksiyon
-    window.onload = function() {
-        try {
-            // Haritayı oluştur (Türkiye merkezli)
-            var map = L.map('map').setView([39.0, 35.0], 6);
+    const logDiv = document.getElementById('debug-log');
+    
+    function log(msg) {
+        logDiv.innerHTML += "> " + msg + "<br>";
+        console.log(msg);
+    }
 
-            // Koyu Tema Harita Katmanı (CartoDB Dark)
+    // Haritayı başlatma fonksiyonu
+    function initAKFUM() {
+        log("Sistem başlatılıyor...");
+        
+        try {
+            if (typeof L === 'undefined') {
+                log("HATA: Leaflet kütüphanesi yüklenemedi!");
+                return;
+            }
+
+            var map = L.map('map').setView([39.0, 35.0], 6);
+            log("Harita objesi oluşturuldu.");
+
             L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
                 attribution: 'AKFUM'
             }).addTo(map);
+            log("Katmanlar eklendi. Harita hazır!");
 
-            // Örnek bir risk noktası ekle (Ankara)
-            L.circle([39.9, 32.8], {
-                color: 'cyan',
-                fillColor: '#00d2ff',
-                fillOpacity: 0.5,
-                radius: 30000
-            }).addTo(map).bindPopup('Oraj Gelişimi Bekleniyor');
+            // Test İşareti
+            L.circle([41.0, 29.0], {color: 'cyan', radius: 20000}).addTo(map).bindPopup("İstanbul Oraj Riski");
 
-            console.log("Harita başarıyla yüklendi!");
-        } catch (error) {
-            console.error("Hata oluştu:", error);
-            document.body.innerHTML += '<div style="position:absolute; top:60px; left:320px; color:red;">Harita yüklenemedi: ' + error + '</div>';
+        } catch (err) {
+            log("KRİTİK HATA: " + err.message);
         }
-    };
+    }
+
+    // Kütüphanelerin yüklenmesi için kısa bir bekleme
+    setTimeout(initAKFUM, 1000);
 </script>
 
 </body>
