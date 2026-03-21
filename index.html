@@ -48,6 +48,7 @@
             border-right: 1px solid var(--border);
             padding: 20px;
             z-index: 1000;
+            overflow-y: auto;
         }
 
         /* Mavi Cam Efektli Kutular */
@@ -115,7 +116,6 @@
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
 
     // 1. İSTANBUL İL SINIRI (Basitleştirilmiş GeoJSON Sınırı)
-    // Bu veri İstanbul'un kabaca il sınırlarını çizer.
     var istanbulBorder = [
         [41.51, 28.08], [41.58, 28.31], [41.45, 28.62], [41.32, 29.05], 
         [41.28, 29.45], [41.20, 29.85], [41.10, 29.95], [40.95, 29.35], 
@@ -125,8 +125,8 @@
     L.polygon(istanbulBorder, {
         color: '#ff8c00',      // Turuncu Sınır
         fillColor: '#ff8c00',
-        fillOpacity: 0.1,
-        weight: 3
+        fillOpacity: 0.05,     // Daha şeffaf iç dolgu
+        weight: 1              // İNCE SINIR (weight: 1)
     }).addTo(map);
 
     // 2. ŞİMŞEK İKONU (Tam Merkezde)
