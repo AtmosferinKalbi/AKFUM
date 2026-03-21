@@ -3,160 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AKFUM V1.0 | İstanbul Oraj Takibi</title>
-    
+    <title>AKFUM V1.0 | Bölgesel Oraj Analizi</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    
     <style>
-        :root {
-            --cyan: #00d2ff;
-            --warning: #ff8c00;
-            --glass: rgba(0, 150, 255, 0.15);
-            --border: rgba(0, 210, 255, 0.3);
-        }
-
+        :root { --cyan: #00d2ff; --glass: rgba(0, 100, 200, 0.15); --border: rgba(0, 210, 255, 0.2); }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        /* Koyu Mavi Gradyan Arka Plan */
+        
         body, html { 
             height: 100%; 
-            background: linear-gradient(135deg, #001f3f 0%, #000a12 100%); 
+            background: radial-gradient(circle at center, #001f3f 0%, #00050a 100%); 
             color: white; 
             font-family: 'Segoe UI', sans-serif; 
             overflow: hidden; 
         }
 
         header {
-            height: 60px;
-            background: rgba(0, 10, 18, 0.8);
-            backdrop-filter: blur(15px);
-            display: flex;
-            align-items: center;
-            padding: 0 20px;
-            border-bottom: 1px solid var(--border);
-            z-index: 1001;
+            height: 50px; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(10px);
+            display: flex; align-items: center; padding: 0 20px;
+            border-bottom: 1px solid var(--border); z-index: 1001;
         }
 
-        main { display: flex; height: calc(100% - 60px); width: 100%; }
+        main { display: flex; height: calc(100% - 50px); width: 100%; }
 
-        /* Cam Efektli Yan Panel */
         #sidebar {
-            width: 320px;
-            background: var(--glass);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            border-right: 1px solid var(--border);
-            padding: 20px;
-            z-index: 1000;
-            overflow-y: auto;
+            width: 300px; background: var(--glass); backdrop-filter: blur(25px);
+            border-right: 1px solid var(--border); padding: 20px; z-index: 1000; overflow-y: auto;
         }
 
-        /* Mavi Cam Efektli Kutular */
         .card {
-            background: rgba(0, 50, 100, 0.3);
-            border: 1px solid var(--border);
-            padding: 15px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            background: rgba(0, 40, 80, 0.3); border: 1px solid var(--border);
+            padding: 15px; border-radius: 12px; margin-bottom: 15px;
         }
 
         #map { flex: 1; height: 100%; background: #000; }
 
-        /* Şimşek İkonu Animasyonu */
-        .thunder-icon {
-            font-size: 32px;
-            animation: flash 0.8s infinite;
-            filter: drop-shadow(0 0 10px #ffee00);
-        }
+        .thunder-icon { font-size: 26px; animation: flash 1.2s infinite; filter: drop-shadow(0 0 8px yellow); }
+        @keyframes flash { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-        @keyframes flash {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(1.2); }
-        }
-
-        @media (max-width: 768px) {
-            main { flex-direction: column; }
-            #sidebar { width: 100%; height: auto; order: 2; border-right: none; }
-            #map { order: 1; flex: 1.5; }
-        }
+        @media (max-width: 768px) { main { flex-direction: column; } #sidebar { width: 100%; height: auto; order: 2; } #map { order: 1; flex: 2; } }
     </style>
 </head>
 <body>
 
-<header>
-    <div style="font-weight:900; color:var(--cyan); letter-spacing:2px;">AKFUM V1.0</div>
-</header>
+<header><div style="font-weight:900; color:var(--cyan); letter-spacing:1px;">AKFUM V1.0 | CANLI RADAR</div></header>
 
 <main>
     <section id="sidebar">
         <div class="card">
-            <h2 style="color:var(--cyan); font-size:1.1rem; margin-bottom:10px;">İstanbul Analizi</h2>
-            <div id="weather">Yükleniyor...</div>
+            <h2 style="color:#ffcc00; font-size:1rem; margin-bottom:8px;">Sarı Alarm Bölgeleri</h2>
+            <p style="font-size:0.8rem; line-height:1.4;">İç Anadolu, Orta Karadeniz ve Doğu Akdeniz hattında konvektif aktivite bekleniyor.</p>
         </div>
-
         <div class="card">
-            <h2 style="color:var(--warning); font-size:1.1rem; margin-bottom:10px;">Oraj Uyarısı</h2>
-            <p style="font-size:0.9rem;">İl sınırları içerisinde <b style="color:var(--warning);">Turuncu Alarm</b> verilmiştir. Konvektif aktivite takibi yapılmaktadır.</p>
+            <h2 style="color:var(--cyan); font-size:0.9rem; margin-bottom:5px;">Riskli İller:</h2>
+            <p style="font-size:0.75rem; color:#ccc;">Ankara, Sivas, Kayseri, Adana, Samsun, Trabzon ve çevre iller.</p>
         </div>
     </section>
-
     <div id="map"></div>
 </main>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
 <script>
     const API_KEY = 'b879d5326e5ae3f4e4f79a0ef03c0394';
-    
-    // Haritayı İstanbul Odaklı Başlat
-    var map = L.map('map', {zoomControl: false}).setView([41.1, 28.9], 9);
+    var map = L.map('map', {zoomControl: false}).setView([39.0, 35.5], 6);
 
-    // Koyu Tema
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
 
-    // 1. İSTANBUL İL SINIRI (Basitleştirilmiş GeoJSON Sınırı)
-    var istanbulBorder = [
-        [41.51, 28.08], [41.58, 28.31], [41.45, 28.62], [41.32, 29.05], 
-        [41.28, 29.45], [41.20, 29.85], [41.10, 29.95], [40.95, 29.35], 
-        [40.80, 29.20], [40.90, 28.60], [41.00, 28.10], [41.15, 27.90]
+    // RİSKLİ BÖLGELER (Sarı İnce Sınırlar)
+    const riskZones = [
+        { name: "İç Anadolu Grubu", coords: [[39.9, 32.8], [40.0, 33.6], [40.6, 34.0], [39.7, 34.8], [39.7, 37.0], [38.7, 35.5], [38.6, 34.7], [38.3, 34.0], [37.8, 32.5]] },
+        { name: "Karadeniz Hattı", coords: [[41.3, 36.3], [41.0, 37.5], [41.0, 39.7], [41.1, 40.5], [40.8, 40.0], [40.7, 38.0], [41.0, 36.5]] },
+        { name: "Güney Hattı", coords: [[37.0, 35.3], [36.8, 34.6], [36.2, 36.1], [37.0, 37.3], [37.0, 36.2]] }
     ];
 
-    L.polygon(istanbulBorder, {
-        color: '#ff8c00',      // Turuncu Sınır
-        fillColor: '#ff8c00',
-        fillOpacity: 0.05,     // Daha şeffaf iç dolgu
-        weight: 1              // İNCE SINIR (weight: 1)
-    }).addTo(map);
-
-    // 2. ŞİMŞEK İKONU (Tam Merkezde)
-    var thunderIcon = L.divIcon({
-        className: 'custom-icon',
-        html: "<div class='thunder-icon'>⚡</div>",
-        iconSize: [40, 40],
-        iconAnchor: [20, 20]
+    riskZones.forEach(zone => {
+        L.polygon(zone.coords, { color: '#ffcc00', fillColor: '#ffcc00', fillOpacity: 0.05, weight: 1 }).addTo(map);
     });
-    L.marker([41.1, 28.9], {icon: thunderIcon}).addTo(map);
 
-    // 3. YAĞIŞ RADARI
-    L.tileLayer(`https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${API_KEY}`, {
-        opacity: 0.5
-    }).addTo(map);
+    // ŞİMŞEK İKONLU İLLER (Merkezi Noktalar)
+    const cities = [
+        [39.93, 32.85], // Ankara
+        [39.84, 33.51], // Kırıkkale
+        [40.60, 33.61], // Çankırı
+        [41.38, 33.78], // Kastamonu
+        [41.28, 36.33], // Samsun
+        [40.55, 34.95], // Çorum
+        [40.31, 36.55], // Tokat
+        [41.00, 37.87], // Ordu
+        [39.81, 34.81], // Yozgat
+        [39.74, 37.01], // Sivas
+        [38.72, 35.48], // Kayseri
+        [38.62, 34.71], // Nevşehir
+        [39.14, 34.16], // Kırşehir
+        [38.36, 34.02], // Aksaray
+        [37.00, 35.32], // Adana
+        [36.81, 34.63], // Mersin
+        [36.20, 36.16], // Hatay
+        [37.06, 37.38], // Gaziantep
+        [41.00, 39.71], // Trabzon
+        [41.02, 40.51]  // Rize
+    ];
 
-    // Hava Durumu Çek
-    async function getLiveWeather() {
-        try {
-            const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=Istanbul&appid=${API_KEY}&units=metric&lang=tr`);
-            const data = await res.json();
-            document.getElementById('weather').innerHTML = `
-                <p>Sıcaklık: <span style="color:#00ffcc; font-weight:bold;">${Math.round(data.main.temp)}°C</span></p>
-                <p>Nem: <span style="color:#00ffcc; font-weight:bold;">%${data.main.humidity}</span></p>
-                <p>Rüzgar: <span style="color:#00ffcc; font-weight:bold;">${data.wind.speed} m/s</span></p>
-            `;
-        } catch(e) { console.log("Hata!"); }
-    }
-    getLiveWeather();
+    var thunderIcon = L.divIcon({
+        className: 'tc', html: "<div class='thunder-icon'>⚡</div>", iconSize: [30, 30], iconAnchor: [15, 15]
+    });
+
+    cities.forEach(pos => {
+        L.marker(pos, {icon: thunderIcon}).addTo(map);
+    });
+
+    // CANLI RADAR KATMANI
+    L.tileLayer(`https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${API_KEY}`, {opacity: 0.4}).addTo(map);
+
 </script>
-
 </body>
 </html>
