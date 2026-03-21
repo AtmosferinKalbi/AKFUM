@@ -10,65 +10,83 @@
     <style>
         :root {
             --cyan: #00d2ff;
-            --dark: #0b0e14;
-            --glass: rgba(0, 210, 255, 0.1);
+            --deep-blue: #001524;
+            --glass-blue: rgba(0, 150, 255, 0.15);
+            --glass-border: rgba(0, 210, 255, 0.3);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body, html { height: 100%; background: var(--dark); color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
 
-        /* Üst Başlık */
+        /* Arka Plan: Maviden Koyu Maviye Gradyan */
+        body, html { 
+            height: 100%; 
+            background: linear-gradient(135deg, #003a4d 0%, #001524 100%); 
+            color: white; 
+            font-family: 'Segoe UI', sans-serif; 
+            overflow: hidden; 
+        }
+
         header {
             height: 60px;
-            background: #001524;
+            background: rgba(0, 21, 36, 0.8);
+            backdrop-filter: blur(10px);
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 0 20px;
-            border-bottom: 2px solid var(--cyan);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            border-bottom: 1px solid var(--glass-border);
             z-index: 1001;
         }
 
-        .logo { font-weight: 800; font-size: 1.4rem; color: var(--cyan); letter-spacing: 2px; }
+        .logo { font-weight: 800; font-size: 1.4rem; color: var(--cyan); letter-spacing: 2px; text-shadow: 0 0 10px rgba(0,210,255,0.5); }
 
-        /* Ana Ekran Düzeni */
-        main {
-            display: flex;
-            height: calc(100% - 60px);
-            width: 100%;
-        }
+        main { display: flex; height: calc(100% - 60px); width: 100%; }
 
-        /* Yan Panel (Şeffaf Turkuaz) */
+        /* Yan Panel Cam Efekti */
         #sidebar {
             width: 320px;
-            background: var(--glass);
-            backdrop-filter: blur(15px);
-            border-right: 1px solid rgba(0, 210, 255, 0.3);
+            background: var(--glass-blue);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-right: 1px solid var(--glass-border);
             padding: 20px;
-            overflow-y: auto;
             z-index: 1000;
+            overflow-y: auto;
         }
 
-        /* Harita Alanı */
-        #map { flex: 1; height: 100%; background: #000; }
-
+        /* Cam Efektli Kutular */
         .card {
-            background: rgba(0, 0, 0, 0.6);
-            border: 1px solid rgba(0, 210, 255, 0.2);
+            background: rgba(0, 40, 80, 0.4);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
             padding: 15px;
-            border-radius: 12px;
+            border-radius: 16px;
             margin-bottom: 20px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
 
-        h2 { color: var(--cyan); margin-bottom: 10px; font-size: 1.1rem; border-bottom: 1px solid #333; padding-bottom: 5px; }
-        .data-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.95rem; }
+        h2 { color: var(--cyan); margin-bottom: 12px; font-size: 1.1rem; font-weight: 600; }
         .val { color: #00ffcc; font-weight: bold; }
 
-        /* Mobil Ayarı */
+        /* Harita */
+        #map { flex: 1; height: 100%; background: transparent; }
+
+        /* Şimşek İkonu */
+        .thunder-icon {
+            font-size: 28px;
+            animation: thunder-blink 0.8s infinite;
+            filter: drop-shadow(0 0 8px yellow);
+        }
+
+        @keyframes thunder-blink {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(1.1); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
         @media (max-width: 768px) {
             main { flex-direction: column; }
-            #sidebar { width: 100%; height: auto; order: 2; border-right: none; border-top: 1px solid var(--cyan); }
+            #sidebar { width: 100%; height: auto; order: 2; border-right: none; border-top: 1px solid var(--glass-border); }
             #map { order: 1; flex: 1.5; }
         }
     </style>
@@ -77,27 +95,31 @@
 
 <header>
     <div class="logo">AKFUM V1.0</div>
-    <div style="font-size: 0.8rem; color: #aaa;">Fırtına Uyarı Merkezi</div>
+    <div style="font-size: 0.8rem; color: #ffcc00; font-weight: bold;">ORAJ RADARI</div>
 </header>
 
 <main>
     <section id="sidebar">
         <div class="card">
-            <h2>Canlı Veri (İstanbul)</h2>
-            <div id="weather-data">
-                <p>Veriler yükleniyor...</p>
-            </div>
+            <h2>Hava Durumu</h2>
+            <div id="weather-info">Yükleniyor...</div>
         </div>
 
         <div class="card">
-            <h2>Oraj Tahmin Parametreleri</h2>
-            <div class="data-row"><span>Tahmini CAPE:</span> <span class="val">1450 J/kg</span></div>
-            <div class="data-row"><span>Lifted Index:</span> <span class="val">-4.2</span></div>
-            <div class="data-row"><span>Yıldırım Riski:</span> <span class="val">%75</span></div>
+            <h2>Risk Analizi</h2>
+            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                <span>CAPE:</span> <span class="val">1850 J/kg</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                <span>Yıldırım:</span> <span class="val">KRİTİK</span>
+            </div>
+            <div style="display:flex; justify-content:space-between;">
+                <span>Sınır:</span> <span style="color:orange; font-weight:bold;">TURUNCU</span>
+            </div>
         </div>
 
-        <div style="font-size: 0.75rem; color: #888; text-align: center;">
-            © AtmosferinKalbi | Veriler OpenWeatherMap üzerinden çekilmektedir.
+        <div style="font-size: 0.7rem; color: rgba(255,255,255,0.5); text-align: center;">
+            AtmosferinKalbi © 2026
         </div>
     </section>
 
@@ -107,51 +129,52 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-    // --- YAPILANDIRMA ---
     const API_KEY = 'b879d5326e5ae3f4e4f79a0ef03c0394';
-    const SEHIR = 'Istanbul';
+    
+    // Harita Başlatma
+    var map = L.map('map', {zoomControl: false}).setView([41.0, 28.9], 8);
 
-    // 1. Haritayı Başlat
-    var map = L.map('map').setView([41.0, 29.0], 7);
+    // Koyu Tema Harita Katmanı
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
 
-    // 2. Koyu Tema Katmanı (CartoDB Dark Matter)
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: 'AKFUM'
-    }).addTo(map);
-
-    // 3. Canlı Yağış Radarı Katmanı (OpenWeatherMap)
+    // Yağış Radarı
     L.tileLayer(`https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${API_KEY}`, {
-        opacity: 0.6
+        opacity: 0.5
     }).addTo(map);
 
-    // 4. API ile Hava Durumu Çekme
-    async function updateWeather() {
+    // İstanbul Sınırı (Turuncu Risk Hattı)
+    L.circle([41.0082, 28.9784], {
+        color: '#ff8c00',
+        fillColor: '#ff8c00',
+        fillOpacity: 0.1,
+        weight: 3,
+        radius: 45000
+    }).addTo(map);
+
+    // Yanıp Sönen Şimşek İkonu
+    var thunderIcon = L.divIcon({
+        className: 'custom-icon',
+        html: "<div class='thunder-icon'>⚡</div>",
+        iconSize: [30, 30],
+        iconAnchor: [15, 15]
+    });
+    L.marker([41.0082, 28.9784], {icon: thunderIcon}).addTo(map).bindPopup("<b>İstanbul:</b> Şiddetli Oraj!");
+
+    // Hava Durumu Verisi Çekme
+    async function getWeatherData() {
         try {
-            const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${SEHIR}&appid=${API_KEY}&units=metric&lang=tr`);
+            const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=Istanbul&appid=${API_KEY}&units=metric&lang=tr`);
             const data = await res.json();
-
-            if (data.cod === 200) {
-                const weatherHTML = `
-                    <div class="data-row"><span>Sıcaklık:</span> <span class="val">${Math.round(data.main.temp)}°C</span></div>
-                    <div class="data-row"><span>Nem:</span> <span class="val">%${data.main.humidity}</span></div>
-                    <div class="data-row"><span>Rüzgar:</span> <span class="val">${data.wind.speed} m/s</span></div>
-                    <div class="data-row"><span>Durum:</span> <span class="val">${data.weather[0].description.toUpperCase()}</span></div>
+            if(data.cod === 200) {
+                document.getElementById('weather-info').innerHTML = `
+                    <p>Sıcaklık: <span class="val">${Math.round(data.main.temp)}°C</span></p>
+                    <p>Nem: <span class="val">%${data.main.humidity}</span></p>
+                    <p>Durum: <span class="val">${data.weather[0].description}</span></p>
                 `;
-                document.getElementById('weather-data').innerHTML = weatherHTML;
-
-                // Haritaya konum işareti ekle
-                L.marker([data.coord.lat, data.coord.lon])
-                    .addTo(map)
-                    .bindPopup(`<b>${data.name}</b><br>Oraj Potansiyeli Analiz Ediliyor.`)
-                    .openPopup();
             }
-        } catch (err) {
-            document.getElementById('weather-data').innerHTML = "<p style='color:red'>Hata: Veri alınamadı.</p>";
-        }
+        } catch(e) { console.log("Veri hatası"); }
     }
-
-    // Başlat
-    updateWeather();
+    getWeatherData();
 </script>
 
 </body>
