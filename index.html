@@ -3,90 +3,155 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AKFUM | AtmosferinKalbi</title>
+    <title>AKFUM V1.0 | AtmosferinKalbi</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     
     <style>
+        :root {
+            --cyan: #00d2ff;
+            --dark: #0b0e14;
+            --glass: rgba(0, 210, 255, 0.1);
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body, html { height: 100%; background: #0b0e14; color: white; font-family: sans-serif; overflow: hidden; }
-        
+        body, html { height: 100%; background: var(--dark); color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+
+        /* Üst Başlık */
         header {
-            height: 50px; background: #001524; display: flex; align-items: center;
-            padding: 0 15px; border-bottom: 2px solid #00d2ff; font-weight: bold; color: #00d2ff;
+            height: 60px;
+            background: #001524;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            border-bottom: 2px solid var(--cyan);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            z-index: 1001;
         }
 
-        #main-container { display: flex; height: calc(100% - 50px); width: 100%; flex-direction: column; }
+        .logo { font-weight: 800; font-size: 1.4rem; color: var(--cyan); letter-spacing: 2px; }
 
-        /* Harita alanı - Yüksekliği netleştirildi */
-        #map { flex: 2; width: 100%; background: #000; min-height: 300px; }
-
-        /* Alt Bilgi Paneli */
-        #info-panel {
-            flex: 1; background: rgba(0, 210, 255, 0.05); border-top: 1px solid #00d2ff55;
-            padding: 15px; overflow-y: auto; backdrop-filter: blur(10px);
+        /* Ana Ekran Düzeni */
+        main {
+            display: flex;
+            height: calc(100% - 60px);
+            width: 100%;
         }
 
-        .card { background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; border: 1px solid #00d2ff33; }
-        #debug-log { color: #ff4d4d; font-size: 12px; margin-top: 10px; font-family: monospace; }
-        .data-text { color: #00ffcc; font-weight: bold; }
+        /* Yan Panel (Şeffaf Turkuaz) */
+        #sidebar {
+            width: 320px;
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            border-right: 1px solid rgba(0, 210, 255, 0.3);
+            padding: 20px;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        /* Harita Alanı */
+        #map { flex: 1; height: 100%; background: #000; }
+
+        .card {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(0, 210, 255, 0.2);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        h2 { color: var(--cyan); margin-bottom: 10px; font-size: 1.1rem; border-bottom: 1px solid #333; padding-bottom: 5px; }
+        .data-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.95rem; }
+        .val { color: #00ffcc; font-weight: bold; }
+
+        /* Mobil Ayarı */
+        @media (max-width: 768px) {
+            main { flex-direction: column; }
+            #sidebar { width: 100%; height: auto; order: 2; border-right: none; border-top: 1px solid var(--cyan); }
+            #map { order: 1; flex: 1.5; }
+        }
     </style>
 </head>
 <body>
 
-<header>AKFUM V1.0</header>
+<header>
+    <div class="logo">AKFUM V1.0</div>
+    <div style="font-size: 0.8rem; color: #aaa;">Fırtına Uyarı Merkezi</div>
+</header>
 
-<div id="main-container">
-    <div id="map"></div>
-    
-    <div id="info-panel">
+<main>
+    <section id="sidebar">
         <div class="card">
-            <h3>Canlı Oraj Takibi</h3>
-            <p>Durum: <span class="data-text">Sistem Hazır</span></p>
-            <p>Tahmini CAPE: <span class="data-text">1800 J/kg</span></p>
+            <h2>Canlı Veri (İstanbul)</h2>
+            <div id="weather-data">
+                <p>Veriler yükleniyor...</p>
+            </div>
         </div>
-        <div id="debug-log"></div>
-    </div>
-</div>
+
+        <div class="card">
+            <h2>Oraj Tahmin Parametreleri</h2>
+            <div class="data-row"><span>Tahmini CAPE:</span> <span class="val">1450 J/kg</span></div>
+            <div class="data-row"><span>Lifted Index:</span> <span class="val">-4.2</span></div>
+            <div class="data-row"><span>Yıldırım Riski:</span> <span class="val">%75</span></div>
+        </div>
+
+        <div style="font-size: 0.75rem; color: #888; text-align: center;">
+            © AtmosferinKalbi | Veriler OpenWeatherMap üzerinden çekilmektedir.
+        </div>
+    </section>
+
+    <div id="map"></div>
+</main>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-    const logDiv = document.getElementById('debug-log');
-    
-    function log(msg) {
-        logDiv.innerHTML += "> " + msg + "<br>";
-        console.log(msg);
-    }
+    // --- YAPILANDIRMA ---
+    const API_KEY = 'b879d5326e5ae3f4e4f79a0ef03c0394';
+    const SEHIR = 'Istanbul';
 
-    // Haritayı başlatma fonksiyonu
-    function initAKFUM() {
-        log("Sistem başlatılıyor...");
-        
+    // 1. Haritayı Başlat
+    var map = L.map('map').setView([41.0, 29.0], 7);
+
+    // 2. Koyu Tema Katmanı (CartoDB Dark Matter)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: 'AKFUM'
+    }).addTo(map);
+
+    // 3. Canlı Yağış Radarı Katmanı (OpenWeatherMap)
+    L.tileLayer(`https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${API_KEY}`, {
+        opacity: 0.6
+    }).addTo(map);
+
+    // 4. API ile Hava Durumu Çekme
+    async function updateWeather() {
         try {
-            if (typeof L === 'undefined') {
-                log("HATA: Leaflet kütüphanesi yüklenemedi!");
-                return;
+            const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${SEHIR}&appid=${API_KEY}&units=metric&lang=tr`);
+            const data = await res.json();
+
+            if (data.cod === 200) {
+                const weatherHTML = `
+                    <div class="data-row"><span>Sıcaklık:</span> <span class="val">${Math.round(data.main.temp)}°C</span></div>
+                    <div class="data-row"><span>Nem:</span> <span class="val">%${data.main.humidity}</span></div>
+                    <div class="data-row"><span>Rüzgar:</span> <span class="val">${data.wind.speed} m/s</span></div>
+                    <div class="data-row"><span>Durum:</span> <span class="val">${data.weather[0].description.toUpperCase()}</span></div>
+                `;
+                document.getElementById('weather-data').innerHTML = weatherHTML;
+
+                // Haritaya konum işareti ekle
+                L.marker([data.coord.lat, data.coord.lon])
+                    .addTo(map)
+                    .bindPopup(`<b>${data.name}</b><br>Oraj Potansiyeli Analiz Ediliyor.`)
+                    .openPopup();
             }
-
-            var map = L.map('map').setView([39.0, 35.0], 6);
-            log("Harita objesi oluşturuldu.");
-
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                attribution: 'AKFUM'
-            }).addTo(map);
-            log("Katmanlar eklendi. Harita hazır!");
-
-            // Test İşareti
-            L.circle([41.0, 29.0], {color: 'cyan', radius: 20000}).addTo(map).bindPopup("İstanbul Oraj Riski");
-
         } catch (err) {
-            log("KRİTİK HATA: " + err.message);
+            document.getElementById('weather-data').innerHTML = "<p style='color:red'>Hata: Veri alınamadı.</p>";
         }
     }
 
-    // Kütüphanelerin yüklenmesi için kısa bir bekleme
-    setTimeout(initAKFUM, 1000);
+    // Başlat
+    updateWeather();
 </script>
 
 </body>
